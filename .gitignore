@@ -1,0 +1,235 @@
+# ============================================================
+# FireDistinguish — Git Ignore
+# ============================================================
+
+
+# ============================================================
+# PYTHON
+# ============================================================
+
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Python cache / tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+
+# ============================================================
+# VIRTUAL ENVIRONMENTS
+# ============================================================
+
+.venv/
+venv/
+env/
+ENV/
+
+
+# ============================================================
+# ENVIRONMENT / SECRETS
+# ============================================================
+
+.env
+.env.*
+!.env.example
+
+
+# ============================================================
+# JUPYTER
+# ============================================================
+
+.ipynb_checkpoints/
+
+
+# ============================================================
+# IDE / EDITOR
+# ============================================================
+
+.vscode/
+.idea/
+
+*.swp
+*.swo
+
+
+# ============================================================
+# OPERATING SYSTEM
+# ============================================================
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+
+# ============================================================
+# RAW DATA
+# ============================================================
+
+# FIRMS raw downloads
+data/raw/
+
+# Any large raw datasets
+*.zip
+*.gz
+*.tar
+*.tar.gz
+
+
+# ============================================================
+# PROCESSED DATA
+# ============================================================
+
+# Generated event datasets
+data/processed/
+data/processed-backup/
+
+
+# ============================================================
+# VERIFICATION DATA
+# ============================================================
+
+# Satellite imagery / TIFF files
+data/verification/**/*.tif
+data/verification/**/*.tiff
+data/verification/**/*.TIF
+data/verification/**/*.TIFF
+
+# Satellite images / rendered chips
+data/verification/**/*.png
+data/verification/**/*.jpg
+data/verification/**/*.jpeg
+data/verification/**/*.webp
+
+# Satellite evidence directories
+data/verification/satellite/
+
+# Generated verification outputs
+data/verification/verification_candidates_v*.csv
+
+# OSM enrichment outputs
+data/verification/*osm*.csv
+
+
+
+data/verification-backup/**/*.tif
+data/verification-backup/**/*.tiff
+data/verification-backup/**/*.TIF
+data/verification-backup/**/*.TIFF
+
+# Satellite images / rendered chips
+data/verification-backup/**/*.png
+data/verification-backup/**/*.jpg
+data/verification-backup/**/*.jpeg
+data/verification-backup/**/*.webp
+
+# Satellite evidence directories
+data/verification-backup/satellite/
+
+# Generated verification outputs
+data/verification-backup/verification_candidates_v*.csv
+data/verification-backup/verification_review_v*.csv
+
+# OSM enrichment outputs
+data/verification-backup/*osm*.csv
+
+data/verification-backup/
+
+# ============================================================
+# GENERATED IMAGERY — ANYWHERE IN PROJECT
+# ============================================================
+
+# Raster imagery
+*.tif
+*.tiff
+*.jp2
+*.img
+*.vrt
+
+# Image files
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.bmp
+
+
+# ============================================================
+# GIS / SATELLITE AUXILIARY FILES
+# ============================================================
+
+*.aux.xml
+*.ovr
+*.tfw
+*.jgw
+*.pgw
+*.prj
+
+
+# ============================================================
+# TEMPORARY / GENERATED FILES
+# ============================================================
+
+*.tmp
+*.temp
+*.log
+
+*.bak
+*.cache
+
+
+# ============================================================
+# PYTHON BUILD / DISTRIBUTION
+# ============================================================
+
+build/
+dist/
+*.egg-info/
+
+
+# ============================================================
+# LOCAL ANALYSIS OUTPUTS
+# ============================================================
+
+outputs/
+figures/
+plots/
+
+
+# ============================================================
+# DATABASE / LOCAL STORAGE
+# ============================================================
+
+*.db
+*.sqlite
+*.sqlite3
+
+
+# ============================================================
+# LOCAL CONFIGURATION
+# ============================================================
+
+*.local
+config.local.*
+
+
+# ============================================================
+# SHARE WITH COLLABORATORS — exceptions to rules above
+# (order matters: these must stay at the bottom of the file)
+# ============================================================
+
+# Original candidate dataset needed to run manual_verify_events.py.
+# NOTE: verification_review_v2*.csv (the generated review output)
+# stays ignored on purpose — each reviewer keeps their own local copy.
+!data/verification/verification_review_v1.csv
+
+# Satellite evidence chips needed by the review app.
+# Directory itself must be un-ignored first, then the file types.
+!data/verification/satellite/
+!data/verification/satellite/**/
+!data/verification/satellite/chips/**/*.png
+!data/verification/satellite/chips/**/*.jpg
+!data/verification/satellite/chips/**/*.jpeg
+!data/verification/satellite/chips/**/*.webp

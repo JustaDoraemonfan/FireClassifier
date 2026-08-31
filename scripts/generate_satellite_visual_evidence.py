@@ -27,8 +27,21 @@ Expected TIFF band order by default:
     4 = B08 (NIR)
     5 = B11 (SWIR1)
     6 = B12 (SWIR2)
+    7 = SCL (Scene Classification — optional, only present in chips
+        downloaded after SCL support was added to
+        download_satellite_chips.py)
 
 If your TIFFs use a different band order, change BAND_MAP below.
+
+NOTE ON RGB RENDERING:
+    RGB panels use a shared gain + gamma curve across R/G/B (matching
+    Sentinel Hub's own true-color rendering) instead of an independent
+    per-channel percentile stretch, which otherwise renders reflectance
+    as dull/hazy grey. When the SCL band is present, cloud / cloud-
+    shadow / cirrus / no-data pixels are excluded from the NDVI and
+    dNBR calculations (not just hidden in the RGB thumbnail) so a
+    smoke/cloud patch over the chip can't masquerade as a false burn
+    signal in the index maps.
 """
 
 from pathlib import Path
@@ -79,7 +92,21 @@ BAND_MAP = {
     "B08": 4,
     "B11": 5,
     "B12": 6,
+    "SCL": 7,
 }
+
+
+# ------------------------------------------------------------
+# True-color rendering parameters (see note above)
+# ------------------------------------------------------------
+
+TRUE_COLOR_GAIN = 3.5
+TRUE_COLOR_GAMMA = 1 / 1.8
+
+# SCL classes treated as unusable ground reflectance:
+# 0 no data, 1 saturated/defective, 3 cloud shadow,
+# 8/9 cloud medium/high probability, 10 thin cirrus.
+SCL_MASK_CLASSES = {0, 1, 3, 8, 9, 10}
 
 
 # ============================================================
@@ -149,14 +176,21 @@ def read_tiff(path):
     return data, profile
 
 
-def get_band(data, band_name):
+def get_band(data, band_name, required=True):
     """
     Extract a band using BAND_MAP.
+
+    If required=False and the band is not present (e.g. SCL in chips
+    downloaded before SCL support existed), returns None instead of
+    raising.
     """
 
     band_number = BAND_MAP[band_name]
 
     if band_number > data.shape[0]:
+
+        if not required:
+            return None
 
         raise ValueError(
             f"Required {band_name} "
@@ -165,6 +199,36 @@ def get_band(data, band_name):
         )
 
     return data[band_number - 1].astype(np.float32)
+
+
+def build_cloud_mask(scl_band):
+    """
+    Return a boolean array (True = cloud/shadow/cirrus/no-data) from
+    an SCL band, or None if no SCL band was available.
+    """
+
+    if scl_band is None:
+        return None
+
+    scl = np.rint(scl_band).astype(np.int16)
+
+    return np.isin(scl, list(SCL_MASK_CLASSES))
+
+
+def combine_masks(*masks):
+    """Logical OR across any number of masks, ignoring None entries."""
+
+    present = [m for m in masks if m is not None]
+
+    if not present:
+        return None
+
+    combined = present[0]
+
+    for m in present[1:]:
+        combined = combined | m
+
+    return combined
 
 
 def clean_band(band):
@@ -179,16 +243,20 @@ def clean_band(band):
     return band
 
 
-def normalize_rgb(red, green, blue):
+def normalize_rgb(red, green, blue, cloud_mask=None):
     """
-    Create a displayable RGB image.
+    Create a displayable true-color RGB image.
 
-    Sentinel-2 reflectance values may be:
-        0–1
-    or:
-        0–10000
+    Uses a shared gain + gamma curve across all three channels
+    (matching Sentinel Hub's own default true-color rendering)
+    rather than an independent per-channel percentile stretch, which
+    otherwise produces a dull/hazy grey look for physically-dim
+    reflectance values. When cloud_mask is provided, masked pixels
+    (cloud / cloud-shadow / cirrus / no-data) are painted magenta so
+    they can't be mistaken for real ground color or a false burn scar.
 
-    This function handles both approximately.
+    Handles reflectance given as either 0-1 or 0-10000 by detecting
+    the input scale before applying the gain.
     """
 
     rgb = np.stack(
@@ -202,31 +270,22 @@ def normalize_rgb(red, green, blue):
 
         return np.zeros_like(rgb)
 
-    max_value = np.nanpercentile(
-        rgb[valid],
-        98
-    )
+    # Detect 0-10000 scaled reflectance vs 0-1 reflectance.
+    reference_high = np.nanpercentile(rgb[valid], 99)
 
-    min_value = np.nanpercentile(
-        rgb[valid],
-        2
-    )
+    scale_factor = 10000.0 if reference_high > 10 else 1.0
 
-    if max_value <= min_value:
+    rgb = np.clip(rgb / scale_factor, 0.0, None) * TRUE_COLOR_GAIN
+    rgb = np.clip(rgb, 0.0, 1.0)
+    rgb = rgb ** TRUE_COLOR_GAMMA
 
-        return np.zeros_like(rgb)
+    rgb = np.nan_to_num(rgb, nan=0.0)
 
-    rgb = (
-        rgb - min_value
-    ) / (
-        max_value - min_value
-    )
-
-    rgb = np.clip(
-        rgb,
-        0,
-        1
-    )
+    if cloud_mask is not None:
+        rgb[cloud_mask] = np.array(
+            [1.0, 0.0, 1.0],
+            dtype=rgb.dtype
+        )
 
     return rgb
 
@@ -546,19 +605,52 @@ for index, event_dir in enumerate(
 
 
         # ----------------------------------------------------
+        # Extract cloud/shadow/cirrus mask (SCL), if present
+        # ----------------------------------------------------
+
+        before_scl = get_band(
+            before, "SCL", required=False
+        )
+
+        after_scl = get_band(
+            after, "SCL", required=False
+        )
+
+        before_cloud_mask = build_cloud_mask(before_scl)
+        after_cloud_mask = build_cloud_mask(after_scl)
+
+        # A pixel contaminated by cloud/shadow/cirrus in EITHER date
+        # makes a before/after comparison at that pixel unreliable,
+        # so change-detection (NDVI/dNBR) masks the union of both.
+        change_mask = combine_masks(
+            before_cloud_mask, after_cloud_mask
+        )
+
+        if before_scl is None and after_scl is None:
+            print(
+                "    [WARN] No SCL band in this TIFF pair — chip was "
+                "downloaded before SCL support was added. Cloud/haze "
+                "pixels cannot be masked out of the RGB or index maps. "
+                "Re-download this event's chips to enable masking."
+            )
+
+
+        # ----------------------------------------------------
         # Create RGB
         # ----------------------------------------------------
 
         before_rgb = normalize_rgb(
             before_red,
             before_green,
-            before_blue
+            before_blue,
+            cloud_mask=before_cloud_mask
         )
 
         after_rgb = normalize_rgb(
             after_red,
             after_green,
-            after_blue
+            after_blue,
+            cloud_mask=after_cloud_mask
         )
 
 
@@ -607,6 +699,24 @@ for index, event_dir in enumerate(
             nbr_before
             - nbr_after
         )
+
+
+        # ----------------------------------------------------
+        # Mask cloud/shadow/cirrus pixels out of the change maps
+        # ----------------------------------------------------
+        #
+        # Without this, a smoke plume, thin cirrus patch, or cloud
+        # shadow sitting over the chip on either date can register as
+        # a spurious NDVI drop / dNBR spike that looks exactly like a
+        # burn signal to a manual reviewer.
+
+        if change_mask is not None:
+
+            delta_ndvi = delta_ndvi.copy()
+            dnbr = dnbr.copy()
+
+            delta_ndvi[change_mask] = np.nan
+            dnbr[change_mask] = np.nan
 
 
         # ----------------------------------------------------

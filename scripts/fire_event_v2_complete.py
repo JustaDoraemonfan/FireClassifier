@@ -1,15 +1,66 @@
 """
-FireEvent V2 generation for West Bengal VIIRS detections.
+FireEvent V3 generation for West Bengal VIIRS detections.
 
-V2 event definition
--------------------
+V3 event definition (revised from V2)
+--------------------------------------
 A VIIRS detection is assigned to an existing FireEvent when:
 
-1. It is within 1.0 km of the event's current centroid.
+1. It is within an adaptive spatial threshold of the NEAREST recent
+   detection already in that event (not the event's running centroid
+   average — see WHY V2 CHANGED below).
 2. It occurs within 48 hours of the event's most recent detection.
-3. The resulting event is no more than 7 days from its first detection.
+3. The resulting event is no more than MAX_EVENT_DURATION_DAYS from
+   its first detection (a generous safety valve, not a feature-
+   shaping cutoff — see WHY V2 CHANGED below).
 
 Otherwise, a new FireEvent is created.
+
+WHY V2 CHANGED
+--------------
+Running V2 on the real West Bengal 2024 data surfaced two concrete
+problems:
+
+1. THE 7-DAY CAP WAS FRAGMENTING PERSISTENT SOURCES.
+   274 events ran right up against the old 7-day cap, and 243 of
+   those (89%) had another event start within 5 days afterward,
+   within 1 km of the same centroid — i.e. the same physical
+   persistent thermal source (almost certainly industrial: a flare,
+   kiln, or plant) sliced into repeated ~7-day chunks. This directly
+   corrupts the "persistence over weeks/months" and "historical
+   behaviour" features the project depends on to tell a normal
+   persistent industrial source apart from an abnormal one.
+
+   FIX: the duration cap is now a generous safety valve
+   (MAX_EVENT_DURATION_DAYS, default 120 days) rather than a
+   feature-defining boundary, events are tagged "chronic" when they
+   run long, and a post-processing pass (link_chained_events) still
+   explicitly links any event that DOES hit the cap to its likely
+   continuation, so persistence can be reconstructed even in the
+   rare case a source outlives the safety valve.
+
+2. CENTROID-DISTANCE MATCHING CAN SPLIT SPREADING FIRES.
+   V2 checked distance from a new detection to the event's running
+   MEAN position. For a genuinely spreading/elongated wildfire, a
+   detection near one end of the fire front can end up farther than
+   the threshold from the average of all points seen so far, even
+   though it sits right next to the fire's actual edge — this can
+   fragment one real wildfire into several artificial events and
+   corrupt area-growth / spread-direction features.
+
+   FIX: matching now checks distance to the NEAREST of the event's
+   recent detections (single-linkage / density-reachability, closer
+   to how DBSCAN would treat it), not distance to the mean.
+
+3. A FIXED 1 KM THRESHOLD IGNORES VIIRS PIXEL FOOTPRINT GROWTH.
+   VIIRS pixels are ~375 m at nadir but grow toward the swath edge
+   (up to ~1-2 km). The dataset's own scan/track columns report this
+   per-detection footprint. A fixed 1 km threshold is too generous
+   for compact nadir pixels and too strict for large edge pixels.
+
+   FIX: the spatial threshold now adds a small, capped buffer based
+   on the average scan/track footprint of the two points being
+   compared, falling back to the fixed 1 km threshold when scan/track
+   aren't available.
 
 Inputs
 ------
@@ -61,12 +112,50 @@ MAPPING_OUTPUT_FILE = (
     / "viirs_west_bengal_2024_detection_to_event_v2.csv"
 )
 
-# FireEvent V2 thresholds
+# ------------------------------------------------------------
+# FireEvent V3 thresholds
+# ------------------------------------------------------------
+
+# Base spatial threshold for a near-nadir VIIRS pixel (~375 m).
 MAX_SPATIAL_KM = 1.0
+
+# Gap threshold: the real event boundary. Two detections separated
+# by more than this at the same/nearby location are treated as
+# unrelated re-ignitions, not one continuous event.
 MAX_GAP_HOURS = 48.0
-MAX_EVENT_DURATION_DAYS = 7.0
+
+# Safety valve only — NOT a feature-shaping cutoff (see module
+# docstring, point 1). Generous enough that a genuine multi-month
+# industrial source is captured as one event almost all the time.
+MAX_EVENT_DURATION_DAYS = 120.0
+
+# An event is tagged "persistent" once it exceeds this duration...
+PERSISTENT_THRESHOLD_HOURS = 24.0
+
+# ...and "chronic" once it exceeds this one. Chronic events are the
+# strongest candidates for a normal/stable persistent industrial
+# source rather than a wildfire.
+CHRONIC_THRESHOLD_DAYS = 30.0
+
+# How many of an event's most recent detections are kept for the
+# nearest-point spatial check. Bounded so the check stays cheap even
+# for very long chronic events; large enough to represent a fire
+# front's actual current extent rather than just its last point.
+LINKAGE_WINDOW_POINTS = 25
+
+# Extra spatial buffer added per point based on its VIIRS scan/track
+# footprint (km), capped so edge-of-swath pixels don't over-merge.
+PIXEL_FOOTPRINT_BUFFER_FRACTION = 0.5
+MAX_ADAPTIVE_BUFFER_KM = 0.5
+
+# Post-processing chain-linking (see link_chained_events): how far
+# apart (in time/space) two events can be while still being flagged
+# as "probably the same physical source, split by the safety valve".
+CHAIN_LINK_MAX_DAYS = 10.0
+CHAIN_LINK_MAX_KM = 1.5
 
 EARTH_RADIUS_KM = 6371.0088
+
 
 
 # ============================================================
@@ -127,7 +216,9 @@ def load_viirs_data(input_file):
         "longitude",
         "frp",
         "bright_ti4",
-        "bright_ti5"
+        "bright_ti5",
+        "scan",
+        "track"
     ]:
         if column in df.columns:
             df[column] = pd.to_numeric(
@@ -168,33 +259,93 @@ def load_viirs_data(input_file):
 
 
 # ============================================================
+# ADAPTIVE SPATIAL THRESHOLD
+# ============================================================
+
+def pixel_footprint_km(scan, track):
+    """
+    Approximate ground footprint size (km) from VIIRS scan/track.
+    Returns None if either value is missing/invalid.
+    """
+
+    if scan is None or track is None:
+        return None
+
+    if not (np.isfinite(scan) and np.isfinite(track)):
+        return None
+
+    return (float(scan) + float(track)) / 2.0
+
+
+def spatial_threshold_km(footprint_a, footprint_b):
+    """
+    Base threshold plus a small, capped buffer for larger
+    (typically swath-edge) VIIRS pixels. Falls back to the fixed
+    base threshold when footprint info isn't available for either
+    point being compared.
+    """
+
+    sizes = [
+        size
+        for size in (footprint_a, footprint_b)
+        if size is not None
+    ]
+
+    if not sizes:
+        return MAX_SPATIAL_KM
+
+    avg_size = sum(sizes) / len(sizes)
+
+    buffer_km = min(
+        MAX_ADAPTIVE_BUFFER_KM,
+        PIXEL_FOOTPRINT_BUFFER_FRACTION * avg_size
+    )
+
+    return MAX_SPATIAL_KM + buffer_km
+
+
+# ============================================================
 # CREATE FIRE EVENTS
 # ============================================================
 
 def create_fire_events(df):
     """
-    Greedy temporal-spatial FireEvent construction.
+    Greedy temporal-spatial FireEvent construction (V3).
 
     Each incoming detection is compared with currently active
-    events. The closest event centroid within 1 km is selected,
-    provided that:
-        - time gap <= 48 hours
-        - total event age <= 7 days
+    events using NEAREST-POINT distance (to any of the event's most
+    recent LINKAGE_WINDOW_POINTS detections, not the running mean),
+    with an adaptive spatial threshold based on VIIRS pixel
+    footprint, provided that:
+        - time gap <= MAX_GAP_HOURS
+        - total event age <= MAX_EVENT_DURATION_DAYS (safety valve)
 
     If no event qualifies, a new event is started.
     """
 
     print()
     print("=" * 70)
-    print("CREATING FIRE EVENTS - V2")
+    print("CREATING FIRE EVENTS - V3")
     print("=" * 70)
 
-    print(f"Spatial threshold:       {MAX_SPATIAL_KM} km")
+    print(f"Base spatial threshold:  {MAX_SPATIAL_KM} km (+ adaptive buffer)")
     print(f"Temporal gap threshold:  {MAX_GAP_HOURS} hours")
     print(
-        f"Maximum event duration: "
+        f"Duration safety valve:   "
         f"{MAX_EVENT_DURATION_DAYS} days"
     )
+    print(f"Linkage window:          last {LINKAGE_WINDOW_POINTS} points/event")
+
+    has_footprint = (
+        "scan" in df.columns
+        and "track" in df.columns
+    )
+
+    if not has_footprint:
+        print(
+            "[NOTE] scan/track columns not found — using fixed "
+            f"{MAX_SPATIAL_KM} km threshold for all detections."
+        )
 
     # Active events are events that can still accept new detections.
     active_events = []
@@ -207,6 +358,15 @@ def create_fire_events(df):
         current_time = row["acq_datetime"]
         current_lat = float(row["latitude"])
         current_lon = float(row["longitude"])
+
+        current_footprint = (
+            pixel_footprint_km(
+                row.get("scan"),
+                row.get("track")
+            )
+            if has_footprint
+            else None
+        )
 
         # ----------------------------------------------------
         # Remove events that can no longer accept this point.
@@ -233,63 +393,85 @@ def create_fire_events(df):
         active_events = still_active
 
         # ----------------------------------------------------
-        # Find spatially compatible active events.
+        # Find the best spatially-compatible active event using
+        # nearest-point (not centroid) distance.
         # ----------------------------------------------------
 
-        candidates = []
+        best_event = None
+        best_distance = None
 
         for event in active_events:
 
-            distance_km = haversine_km(
+            recent_lats = event["recent_lats"]
+            recent_lons = event["recent_lons"]
+            recent_footprints = event["recent_footprints"]
+
+            distances_km = haversine_km(
                 current_lat,
                 current_lon,
-                event["centroid_lat"],
-                event["centroid_lon"]
+                recent_lats,
+                recent_lons
             )
 
-            if distance_km <= MAX_SPATIAL_KM:
-
-                candidates.append(
-                    (distance_km, event)
+            if current_footprint is None:
+                thresholds_km = np.full(
+                    len(recent_lats), MAX_SPATIAL_KM
                 )
+            else:
+                thresholds_km = np.array([
+                    spatial_threshold_km(current_footprint, fp)
+                    for fp in recent_footprints
+                ])
 
-        # ----------------------------------------------------
-        # Assign to nearest compatible event.
-        # ----------------------------------------------------
+            compatible = distances_km <= thresholds_km
 
-        if candidates:
+            if not np.any(compatible):
+                continue
 
-            distance_km, event = min(
-                candidates,
-                key=lambda x: x[0]
+            event_min_distance = float(
+                distances_km[compatible].min()
             )
+
+            if (
+                best_distance is None
+                or event_min_distance < best_distance
+            ):
+                best_distance = event_min_distance
+                best_event = event
+
+        # ----------------------------------------------------
+        # Assign to the best compatible event, or start a new one.
+        # ----------------------------------------------------
+
+        if best_event is not None:
+
+            event = best_event
 
             event["indices"].append(index)
             event["last_time"] = current_time
 
-            # Incrementally update event centroid.
-            n = len(event["indices"])
+            event["recent_lats"] = np.append(
+                event["recent_lats"], current_lat
+            )[-LINKAGE_WINDOW_POINTS:]
 
-            event["centroid_lat"] += (
-                current_lat - event["centroid_lat"]
-            ) / n
+            event["recent_lons"] = np.append(
+                event["recent_lons"], current_lon
+            )[-LINKAGE_WINDOW_POINTS:]
 
-            event["centroid_lon"] += (
-                current_lon - event["centroid_lon"]
-            ) / n
-
-        # ----------------------------------------------------
-        # No compatible event -> create a new event.
-        # ----------------------------------------------------
+            event["recent_footprints"] = (
+                event["recent_footprints"]
+                + [current_footprint]
+            )[-LINKAGE_WINDOW_POINTS:]
 
         else:
 
             event = {
                 "start_time": current_time,
                 "last_time": current_time,
-                "centroid_lat": current_lat,
-                "centroid_lon": current_lon,
-                "indices": [index]
+                "recent_lats": np.array([current_lat]),
+                "recent_lons": np.array([current_lon]),
+                "recent_footprints": [current_footprint],
+                "indices": [index],
             }
 
             active_events.append(event)
@@ -527,15 +709,27 @@ def build_event_dataset(df):
     # --------------------------------------------------------
     # Event type
     # --------------------------------------------------------
+    #
+    # "chronic" events (running well beyond a typical wildfire's
+    # lifetime) are the strongest candidates for a normal, stable
+    # persistent industrial source rather than a wildfire — this is
+    # the signal the project's normal-vs-abnormal-industrial
+    # extension needs.
 
     events_df["event_type"] = np.select(
         [
             events_df["detection_count"].eq(1),
-            events_df["duration_hours"].gt(24)
+            events_df["duration_hours"].gt(
+                CHRONIC_THRESHOLD_DAYS * 24
+            ),
+            events_df["duration_hours"].gt(
+                PERSISTENT_THRESHOLD_HOURS
+            ),
         ],
         [
             "single_detection",
-            "persistent"
+            "chronic",
+            "persistent",
         ],
         default="multi_detection"
     )
@@ -547,17 +741,111 @@ def build_event_dataset(df):
     # These are NOT additional event-definition rules.
     # They identify events worth inspecting manually.
     #
+    # near_duration_cap specifically flags events that ran into the
+    # MAX_EVENT_DURATION_DAYS safety valve — these are exactly the
+    # events link_chained_events() below tries to reconnect to their
+    # likely continuation.
+
+    events_df["near_duration_cap"] = (
+        events_df["duration_hours"]
+        >= (MAX_EVENT_DURATION_DAYS * 24 - 24)
+    )
 
     events_df["review_flag"] = (
-        (
-            events_df["duration_hours"]
-            > MAX_EVENT_DURATION_DAYS * 24
-            + 1e-6
-        )
+        events_df["near_duration_cap"]
         |
         (
             events_df["displacement_km"] > 5
         )
+    )
+
+    return events_df
+
+
+# ============================================================
+# LINK CHAINED EVENTS
+# ============================================================
+
+def link_chained_events(events_df):
+    """
+    For events that ran into the MAX_EVENT_DURATION_DAYS safety
+    valve (near_duration_cap), look for a spatially-close event that
+    starts shortly after this one ends, and link them.
+
+    This is exactly the check that surfaced the V2 fragmentation
+    problem in the first place (89% of long-duration V2 events had
+    such a follow-up within 5 days / 1 km) — running it here means
+    downstream feature-engineering can reconstruct true multi-month
+    persistence even on the rare occasion a source outlives the
+    safety valve, instead of silently treating each chunk as an
+    unrelated short-lived event.
+
+    Adds two columns:
+        linked_next_event_id : the likely continuation of this event
+        linked_prev_event_id : the likely predecessor of this event
+    """
+
+    events_df = events_df.copy()
+
+    events_df["linked_next_event_id"] = None
+    events_df["linked_prev_event_id"] = None
+
+    near_cap = events_df[events_df["near_duration_cap"]]
+
+    if near_cap.empty:
+        return events_df
+
+    for _, row in near_cap.iterrows():
+
+        window_start = row["end_time"]
+        window_end = row["end_time"] + pd.Timedelta(
+            days=CHAIN_LINK_MAX_DAYS
+        )
+
+        candidates = events_df[
+            (events_df["event_id"] != row["event_id"])
+            & (events_df["start_time"] >= window_start)
+            & (events_df["start_time"] <= window_end)
+        ]
+
+        if candidates.empty:
+            continue
+
+        distances_km = haversine_km(
+            row["centroid_lat"],
+            row["centroid_lon"],
+            candidates["centroid_lat"].to_numpy(),
+            candidates["centroid_lon"].to_numpy()
+        )
+
+        close_enough = distances_km <= CHAIN_LINK_MAX_KM
+
+        if not np.any(close_enough):
+            continue
+
+        close_candidates = candidates.loc[close_enough].copy()
+        close_candidates["_distance_km"] = distances_km[close_enough]
+
+        best = close_candidates.sort_values(
+            ["_distance_km", "start_time"]
+        ).iloc[0]
+
+        events_df.loc[
+            events_df["event_id"] == row["event_id"],
+            "linked_next_event_id"
+        ] = best["event_id"]
+
+        events_df.loc[
+            events_df["event_id"] == best["event_id"],
+            "linked_prev_event_id"
+        ] = row["event_id"]
+
+    linked_count = events_df["linked_next_event_id"].notna().sum()
+
+    print(
+        f"\nChain-linked events: {linked_count:,} "
+        f"of {near_cap.shape[0]:,} events near the duration cap "
+        "were linked to a likely continuation."
     )
 
     return events_df
@@ -623,15 +911,27 @@ def run_sanity_check(df, events_df, mapping_df):
 
     persistent_events = (
         events_df["duration_hours"]
-        .gt(24)
+        .gt(PERSISTENT_THRESHOLD_HOURS)
         .sum()
     )
 
-    events_over_7_days = (
+    chronic_events = (
+        events_df["event_type"]
+        .eq("chronic")
+        .sum()
+    )
+
+    events_over_cap = (
         events_df["duration_hours"]
         > MAX_EVENT_DURATION_DAYS * 24
         + 1e-6
     ).sum()
+
+    chained_events = (
+        events_df["linked_next_event_id"].notna().sum()
+        if "linked_next_event_id" in events_df.columns
+        else 0
+    )
 
     events_over_5km = (
         events_df["displacement_km"]
@@ -684,8 +984,18 @@ def run_sanity_check(df, events_df, mapping_df):
     )
 
     print(
-        f"Events >7 days:            "
-        f"{events_over_7_days:,}"
+        f"Chronic (>{CHRONIC_THRESHOLD_DAYS:g} days):        "
+        f"{chronic_events:,}"
+    )
+
+    print(
+        f"Events at duration cap ({MAX_EVENT_DURATION_DAYS:g}d): "
+        f"{events_over_cap:,}"
+    )
+
+    print(
+        f"  ...chain-linked to a continuation: "
+        f"{chained_events:,}"
     )
 
     print(
@@ -728,8 +1038,9 @@ def run_sanity_check(df, events_df, mapping_df):
             "A detection is mapped to multiple events."
         )
 
-    assert events_over_7_days == 0, (
-        "An event exceeds the 7-day V2 limit."
+    assert events_over_cap == 0, (
+        "An event exceeds the V3 duration safety valve — this "
+        "should be impossible by construction."
     )
 
     print()
@@ -794,6 +1105,10 @@ def main():
         df
     )
 
+    events_df = link_chained_events(
+        events_df
+    )
+
     mapping_df = create_detection_mapping(
         df
     )
@@ -815,7 +1130,7 @@ def main():
 
     print()
     print("=" * 70)
-    print("V2 COMPLETE")
+    print("V3 COMPLETE")
     print("=" * 70)
 
     print(
