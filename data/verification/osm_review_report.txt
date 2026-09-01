@@ -1,0 +1,1305 @@
+================================================================================
+FIREDISTINGUISH — OSM VERIFICATION REPORT
+================================================================================
+
+This report provides contextual OSM evidence only.
+It does NOT assign fire labels or determine fire cause.
+
+
+################################################################################
+EVENT: WB2024_EVT_001083
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-03-08 06:58:00
+End time            : 2024-03-08 06:58:00
+Duration (hours)    : 0.0
+Detection count     : 2
+Centroid latitude   : 26.72935
+Centroid longitude  : 89.318265
+Displacement (km)   : 0.3949
+Mean FRP            : 22.63
+Maximum FRP         : 41.29
+Event type          : multi_detection
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 22.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : N/A
+Building types      : N/A
+Highway types       : track|trunk|trunk_link|unclassified
+Place types         : N/A
+Natural features    : water|wood
+Waterways           : river
+Amenities           : bench
+Context             : amenity:bench|highway:track|highway:trunk|highway:trunk_link|highway:unclassified|natural:water|natural:wood|waterway:river
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_002703
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-04-22 07:29:00
+End time            : 2024-04-22 07:29:00
+Duration (hours)    : 0.0
+Detection count     : 1
+Centroid latitude   : 22.47687
+Centroid longitude  : 87.89282
+Displacement (km)   : 0.0
+Mean FRP            : 40.1
+Maximum FRP         : 40.1
+Event type          : single_detection
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 57.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : industrial
+Building types      : yes
+Highway types       : path|residential|secondary|service|unclassified
+Place types         : N/A
+Natural features    : water
+Waterways           : canal|river
+Amenities           : parking|toilets
+Context             : amenity:parking|amenity:toilets|building:yes|highway:path|highway:residential|highway:secondary|highway:service|highway:unclassified|landuse:industrial|natural:water|waterway:canal|waterway:river
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_002831
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-04-25 08:14:00
+End time            : 2024-04-25 08:14:00
+Duration (hours)    : 0.0
+Detection count     : 2
+Centroid latitude   : 25.459935
+Centroid longitude  : 88.428815
+Displacement (km)   : 0.7974
+Mean FRP            : 19.245
+Maximum FRP         : 30.6
+Event type          : multi_detection
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 84.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : N/A
+Building types      : yes
+Highway types       : residential|service|tertiary|track|unclassified
+Place types         : N/A
+Natural features    : N/A
+Waterways           : river
+Amenities           : N/A
+Context             : building:yes|highway:residential|highway:service|highway:tertiary|highway:track|highway:unclassified|waterway:river
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_003283
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-05-03 07:23:00
+End time            : 2024-05-04 19:32:00
+Duration (hours)    : 36.15
+Detection count     : 3
+Centroid latitude   : 23.289183
+Centroid longitude  : 86.088603
+Displacement (km)   : 0.5489
+Mean FRP            : 8.31
+Maximum FRP         : 18.05
+Event type          : persistent
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : error
+Search radius (m)   : 2000
+OSM elements        : N/A
+Industrial objects  : N/A
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : N/A
+Building types      : N/A
+Highway types       : N/A
+Place types         : N/A
+Natural features    : N/A
+Waterways           : N/A
+Amenities           : N/A
+Context             : N/A
+
+NOTE: OSM query failed. Absence of features cannot be inferred.
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_000926
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-02-28 18:53:00
+End time            : 2024-03-17 07:28:00
+Duration (hours)    : 420.583
+Detection count     : 128
+Centroid latitude   : 23.692221
+Centroid longitude  : 87.112933
+Displacement (km)   : 2.6626
+Mean FRP            : 1.947109375
+Maximum FRP         : 5.24
+Event type          : persistent
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 145.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : industrial|residential
+Building types      : N/A
+Highway types       : residential|secondary|service|track|unclassified
+Place types         : N/A
+Natural features    : N/A
+Waterways           : N/A
+Amenities           : N/A
+Context             : highway:residential|highway:secondary|highway:service|highway:track|highway:unclassified|landuse:industrial|landuse:residential
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_002255
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-04-11 20:03:00
+End time            : 2024-05-04 19:32:00
+Duration (hours)    : 551.483
+Detection count     : 154
+Centroid latitude   : 23.692154
+Centroid longitude  : 87.115104
+Displacement (km)   : 1.2101
+Mean FRP            : 2.803441558441558
+Maximum FRP         : 7.16
+Event type          : persistent
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 138.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : industrial|residential
+Building types      : N/A
+Highway types       : residential|secondary|service|track|unclassified
+Place types         : N/A
+Natural features    : N/A
+Waterways           : N/A
+Amenities           : N/A
+Context             : highway:residential|highway:secondary|highway:service|highway:track|highway:unclassified|landuse:industrial|landuse:residential
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_003853
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-10-26 19:49:00
+End time            : 2024-11-28 19:29:00
+Duration (hours)    : 791.667
+Detection count     : 127
+Centroid latitude   : 22.378842
+Centroid longitude  : 87.278615
+Displacement (km)   : 0.5894
+Mean FRP            : 2.96503937007874
+Maximum FRP         : 8.49
+Event type          : chronic
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 179.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : commercial|farmland|industrial|residential
+Building types      : manufacture|office|yes
+Highway types       : footway|residential|service|steps|track|unclassified
+Place types         : N/A
+Natural features    : water
+Waterways           : stream
+Amenities           : N/A
+Context             : building:manufacture|building:office|building:yes|highway:footway|highway:residential|highway:service|highway:steps|highway:track|highway:unclassified|landuse:commercial|landuse:farmland|landuse:industrial|landuse:residential|natural:water|waterway:stream
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_003854
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-10-26 19:49:00
+End time            : 2024-11-28 19:29:00
+Duration (hours)    : 791.667
+Detection count     : 161
+Centroid latitude   : 22.365932
+Centroid longitude  : 87.298104
+Displacement (km)   : 0.3424
+Mean FRP            : 2.674472049689441
+Maximum FRP         : 8.5
+Event type          : chronic
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 292.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : industrial|residential
+Building types      : N/A
+Highway types       : construction|footway|residential|service|steps|track|trunk|unclassified
+Place types         : N/A
+Natural features    : water
+Waterways           : stream
+Amenities           : N/A
+Context             : highway:construction|highway:footway|highway:residential|highway:service|highway:steps|highway:track|highway:trunk|highway:unclassified|landuse:industrial|landuse:residential|natural:water|waterway:stream
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_004303
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-12-01 20:13:00
+End time            : 2024-12-31 19:10:00
+Duration (hours)    : 718.95
+Detection count     : 137
+Centroid latitude   : 23.557637
+Centroid longitude  : 87.239493
+Displacement (km)   : 1.4143
+Mean FRP            : 2.391313868613139
+Maximum FRP         : 13.14
+Event type          : persistent
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 151.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : industrial|quarry|railway|residential
+Building types      : industrial|yes
+Highway types       : residential|service|tertiary|tertiary_link|track|trunk|trunk_link
+Place types         : N/A
+Natural features    : N/A
+Waterways           : river|stream
+Amenities           : clinic
+Context             : amenity:clinic|building:industrial|building:yes|highway:residential|highway:service|highway:tertiary|highway:tertiary_link|highway:track|highway:trunk|highway:trunk_link|landuse:industrial|landuse:quarry|landuse:railway|landuse:residential|waterway:river|waterway:stream
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_001308
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-03-16 07:48:00
+End time            : 2024-03-18 19:36:00
+Duration (hours)    : 59.8
+Detection count     : 11
+Centroid latitude   : 26.859815
+Centroid longitude  : 88.249328
+Displacement (km)   : 2.9761
+Mean FRP            : 5.066363636363636
+Maximum FRP         : 11.78
+Event type          : persistent
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 1720.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : farmland|residential
+Building types      : construction|yes
+Highway types       : path|residential|secondary|service|steps|track|unclassified
+Place types         : N/A
+Natural features    : bare_rock|rock|sand|scree|scrub|shingle|water|wood
+Waterways           : river|stream
+Amenities           : place_of_worship|restaurant
+Context             : amenity:place_of_worship|amenity:restaurant|building:construction|building:yes|highway:path|highway:residential|highway:secondary|highway:service|highway:steps|highway:track|highway:unclassified|landuse:farmland|landuse:residential|natural:bare_rock|natural:rock|natural:sand|natural:scree|natural:scrub|natural:shingle|natural:water|natural:wood|waterway:river|waterway:stream
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_001988
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-04-02 19:33:00
+End time            : 2024-04-03 06:46:00
+Duration (hours)    : 11.217
+Detection count     : 5
+Centroid latitude   : 24.178894
+Centroid longitude  : 88.659608
+Displacement (km)   : 3.5736
+Mean FRP            : 5.718000000000001
+Maximum FRP         : 8.56
+Event type          : multi_detection
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 4.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : N/A
+Building types      : N/A
+Highway types       : unclassified
+Place types         : N/A
+Natural features    : water
+Waterways           : river
+Amenities           : N/A
+Context             : highway:unclassified|natural:water|waterway:river
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_002263
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-04-12 07:16:00
+End time            : 2024-04-14 06:39:00
+Duration (hours)    : 47.383
+Detection count     : 17
+Centroid latitude   : 24.380276
+Centroid longitude  : 87.907068
+Displacement (km)   : 3.7937
+Mean FRP            : 4.445294117647059
+Maximum FRP         : 5.84
+Event type          : persistent
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 35.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : N/A
+Building types      : yes
+Highway types       : residential|tertiary|unclassified
+Place types         : village
+Natural features    : N/A
+Waterways           : canal
+Amenities           : N/A
+Context             : building:yes|highway:residential|highway:tertiary|highway:unclassified|place:village|waterway:canal
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_002312
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-04-12 19:44:00
+End time            : 2024-04-13 06:58:00
+Duration (hours)    : 11.233
+Detection count     : 5
+Centroid latitude   : 25.372304
+Centroid longitude  : 88.299554
+Displacement (km)   : 0.3416
+Mean FRP            : 17.490000000000002
+Maximum FRP         : 46.71
+Event type          : multi_detection
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 73.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : N/A
+Building types      : N/A
+Highway types       : residential|secondary|service|tertiary|track|unclassified
+Place types         : N/A
+Natural features    : N/A
+Waterways           : N/A
+Amenities           : N/A
+Context             : highway:residential|highway:secondary|highway:service|highway:tertiary|highway:track|highway:unclassified
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_002579
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-04-18 07:04:00
+End time            : 2024-04-18 07:04:00
+Duration (hours)    : 0.0
+Detection count     : 5
+Centroid latitude   : 23.582192
+Centroid longitude  : 87.460016
+Displacement (km)   : 0.4889
+Mean FRP            : 47.748000000000005
+Maximum FRP         : 109.33
+Event type          : multi_detection
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 10.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : N/A
+Building types      : N/A
+Highway types       : tertiary|unclassified
+Place types         : N/A
+Natural features    : N/A
+Waterways           : canal
+Amenities           : N/A
+Context             : highway:tertiary|highway:unclassified|waterway:canal
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_002597
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-04-18 07:05:00
+End time            : 2024-04-18 07:05:00
+Duration (hours)    : 0.0
+Detection count     : 5
+Centroid latitude   : 25.470784
+Centroid longitude  : 88.416604
+Displacement (km)   : 0.5757
+Mean FRP            : 66.974
+Maximum FRP         : 101.86
+Event type          : multi_detection
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 93.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : N/A
+Building types      : yes
+Highway types       : primary|residential|service|track|unclassified
+Place types         : N/A
+Natural features    : water
+Waterways           : river
+Amenities           : N/A
+Context             : building:yes|highway:primary|highway:residential|highway:service|highway:track|highway:unclassified|natural:water|waterway:river
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_003293
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-05-03 07:23:00
+End time            : 2024-05-03 07:23:00
+Duration (hours)    : 0.0
+Detection count     : 1
+Centroid latitude   : 22.96776
+Centroid longitude  : 87.20143
+Displacement (km)   : 0.0
+Mean FRP            : 62.3
+Maximum FRP         : 62.3
+Event type          : single_detection
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 46.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : reservoir
+Building types      : N/A
+Highway types       : residential|service|tertiary|unclassified
+Place types         : N/A
+Natural features    : wood
+Waterways           : dam
+Amenities           : N/A
+Context             : highway:residential|highway:service|highway:tertiary|highway:unclassified|landuse:reservoir|natural:wood|waterway:dam
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_003497
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-05-25 07:10:00
+End time            : 2024-05-25 07:10:00
+Duration (hours)    : 0.0
+Detection count     : 2
+Centroid latitude   : 23.79585
+Centroid longitude  : 87.74838
+Displacement (km)   : 0.5622
+Mean FRP            : 33.19
+Maximum FRP         : 47.95
+Event type          : multi_detection
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : error
+Search radius (m)   : 2000
+OSM elements        : N/A
+Industrial objects  : N/A
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : N/A
+Building types      : N/A
+Highway types       : N/A
+Place types         : N/A
+Natural features    : N/A
+Waterways           : N/A
+Amenities           : N/A
+Context             : N/A
+
+NOTE: OSM query failed. Absence of features cannot be inferred.
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_000716
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-02-07 07:59:00
+End time            : 2024-03-18 07:09:00
+Duration (hours)    : 959.167
+Detection count     : 98
+Centroid latitude   : 22.055139
+Centroid longitude  : 88.124001
+Displacement (km)   : 0.1666
+Mean FRP            : 2.142551020408164
+Maximum FRP         : 5.52
+Event type          : chronic
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 344.0
+Industrial objects  : 1.0
+Nearest industrial  : 2.387130385182582 km
+Industrial type     : refinery
+Land use            : brownfield|forest|grass|industrial|railway
+Building types      : industrial|storage_tank|yes
+Highway types       : bus_stop|living_street|path|residential|secondary|service|tertiary|unclassified
+Place types         : sea
+Natural features    : bay|coastline|water|wood
+Waterways           : canal|river
+Amenities           : college
+Context             : amenity:college|building:industrial|building:storage_tank|building:yes|highway:bus_stop|highway:living_street|highway:path|highway:residential|highway:secondary|highway:service|highway:tertiary|highway:unclassified|industrial|landuse:brownfield|landuse:forest|landuse:grass|landuse:industrial|landuse:railway|natural:bay|natural:coastline|natural:water|natural:wood|place:sea|waterway:canal|waterway:river
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_003856
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-10-27 19:29:00
+End time            : 2024-12-31 19:10:00
+Duration (hours)    : 1559.683
+Detection count     : 341
+Centroid latitude   : 23.692359
+Centroid longitude  : 87.118276
+Displacement (km)   : 1.49
+Mean FRP            : 1.7399413489736069
+Maximum FRP         : 4.8
+Event type          : chronic
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 128.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : industrial|residential
+Building types      : N/A
+Highway types       : residential|secondary|service|track|unclassified
+Place types         : N/A
+Natural features    : N/A
+Waterways           : N/A
+Amenities           : N/A
+Context             : highway:residential|highway:secondary|highway:service|highway:track|highway:unclassified|landuse:industrial|landuse:residential
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_003857
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-10-27 19:29:00
+End time            : 2024-12-31 19:10:00
+Duration (hours)    : 1559.683
+Detection count     : 190
+Centroid latitude   : 23.693511
+Centroid longitude  : 87.101918
+Displacement (km)   : 0.867
+Mean FRP            : 1.544157894736842
+Maximum FRP         : 5.54
+Event type          : chronic
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 168.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : industrial|residential
+Building types      : yes
+Highway types       : residential|secondary|service|track|unclassified
+Place types         : N/A
+Natural features    : N/A
+Waterways           : N/A
+Amenities           : N/A
+Context             : building:yes|highway:residential|highway:secondary|highway:service|highway:track|highway:unclassified|landuse:industrial|landuse:residential
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_003863
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-10-27 19:29:00
+End time            : 2024-12-03 19:35:00
+Duration (hours)    : 888.1
+Detection count     : 54
+Centroid latitude   : 23.615697
+Centroid longitude  : 86.787389
+Displacement (km)   : 0.1307
+Mean FRP            : 1.4137037037037037
+Maximum FRP         : 3.17
+Event type          : chronic
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 18.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : N/A
+Building types      : yes
+Highway types       : primary|residential|tertiary|unclassified
+Place types         : N/A
+Natural features    : water|wood
+Waterways           : N/A
+Amenities           : hospital
+Context             : amenity:hospital|building:yes|highway:primary|highway:residential|highway:tertiary|highway:unclassified|natural:water|natural:wood
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_003864
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-10-27 19:30:00
+End time            : 2024-11-30 18:51:00
+Duration (hours)    : 815.35
+Detection count     : 81
+Centroid latitude   : 22.054982
+Centroid longitude  : 88.123526
+Displacement (km)   : 0.5674
+Mean FRP            : 2.306543209876543
+Maximum FRP         : 7.14
+Event type          : chronic
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 356.0
+Industrial objects  : 1.0
+Nearest industrial  : 1.909079649787127 km
+Industrial type     : refinery
+Land use            : brownfield|forest|grass|industrial|railway
+Building types      : industrial|storage_tank|yes
+Highway types       : bus_stop|living_street|path|residential|secondary|service|tertiary|unclassified
+Place types         : sea
+Natural features    : bay|coastline|water|wood
+Waterways           : canal|river
+Amenities           : college
+Context             : amenity:college|building:industrial|building:storage_tank|building:yes|highway:bus_stop|highway:living_street|highway:path|highway:residential|highway:secondary|highway:service|highway:tertiary|highway:unclassified|industrial|landuse:brownfield|landuse:forest|landuse:grass|landuse:industrial|landuse:railway|natural:bay|natural:coastline|natural:water|natural:wood|place:sea|waterway:canal|waterway:river
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_002151
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-04-06 07:28:00
+End time            : 2024-04-06 07:28:00
+Duration (hours)    : 0.0
+Detection count     : 2
+Centroid latitude   : 23.330965
+Centroid longitude  : 87.090245
+Displacement (km)   : 0.3774
+Mean FRP            : 4.13
+Maximum FRP         : 6.49
+Event type          : multi_detection
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 108.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : N/A
+Building types      : yes
+Highway types       : residential|service|track|trunk|unclassified
+Place types         : N/A
+Natural features    : water
+Waterways           : N/A
+Amenities           : N/A
+Context             : building:yes|highway:residential|highway:service|highway:track|highway:trunk|highway:unclassified|natural:water
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_002709
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-04-22 07:29:00
+End time            : 2024-04-22 07:29:00
+Duration (hours)    : 0.0
+Detection count     : 3
+Centroid latitude   : 22.5348
+Centroid longitude  : 87.12133
+Displacement (km)   : 0.5601
+Mean FRP            : 8.86
+Maximum FRP         : 8.86
+Event type          : multi_detection
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 11.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : reservoir
+Building types      : N/A
+Highway types       : residential|unclassified
+Place types         : N/A
+Natural features    : wood
+Waterways           : ditch
+Amenities           : N/A
+Context             : highway:residential|highway:unclassified|landuse:reservoir|natural:wood|waterway:ditch
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_003205
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-05-02 07:42:00
+End time            : 2024-05-02 07:42:00
+Duration (hours)    : 0.0
+Detection count     : 9
+Centroid latitude   : 22.349116
+Centroid longitude  : 87.40279
+Displacement (km)   : 1.1897
+Mean FRP            : 6.823333333333333
+Maximum FRP         : 13.77
+Event type          : multi_detection
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : error
+Search radius (m)   : 2000
+OSM elements        : N/A
+Industrial objects  : N/A
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : N/A
+Building types      : N/A
+Highway types       : N/A
+Place types         : N/A
+Natural features    : N/A
+Waterways           : N/A
+Amenities           : N/A
+Context             : N/A
+
+NOTE: OSM query failed. Absence of features cannot be inferred.
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_005629
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-12-24 07:14:00
+End time            : 2024-12-25 06:55:00
+Duration (hours)    : 23.683
+Detection count     : 3
+Centroid latitude   : 23.8601
+Centroid longitude  : 87.62024
+Displacement (km)   : 0.102
+Mean FRP            : 2.786666666666666
+Maximum FRP         : 3.05
+Event type          : multi_detection
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 99.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : N/A
+Building types      : yes
+Highway types       : primary|residential|service|track|unclassified
+Place types         : N/A
+Natural features    : N/A
+Waterways           : N/A
+Amenities           : N/A
+Context             : building:yes|highway:primary|highway:residential|highway:service|highway:track|highway:unclassified
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_002359
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-04-13 06:58:00
+End time            : 2024-04-13 06:58:00
+Duration (hours)    : 0.0
+Detection count     : 1
+Centroid latitude   : 24.34989
+Centroid longitude  : 87.91041
+Displacement (km)   : 0.0
+Mean FRP            : 2.22
+Maximum FRP         : 2.22
+Event type          : single_detection
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 23.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : N/A
+Building types      : yes
+Highway types       : residential|unclassified
+Place types         : village
+Natural features    : water
+Waterways           : canal
+Amenities           : N/A
+Context             : building:yes|highway:residential|highway:unclassified|natural:water|place:village|waterway:canal
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_003919
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-11-12 19:29:00
+End time            : 2024-11-12 19:29:00
+Duration (hours)    : 0.0
+Detection count     : 1
+Centroid latitude   : 23.5831
+Centroid longitude  : 86.72363
+Displacement (km)   : 0.0
+Mean FRP            : 0.67
+Maximum FRP         : 0.67
+Event type          : single_detection
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 23.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : N/A
+Building types      : N/A
+Highway types       : primary|residential|tertiary|unclassified
+Place types         : N/A
+Natural features    : water
+Waterways           : river
+Amenities           : N/A
+Context             : highway:primary|highway:residential|highway:tertiary|highway:unclassified|natural:water|waterway:river
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_004255
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-11-28 07:01:00
+End time            : 2024-11-28 07:01:00
+Duration (hours)    : 0.0
+Detection count     : 1
+Centroid latitude   : 23.25427
+Centroid longitude  : 88.14429
+Displacement (km)   : 0.0
+Mean FRP            : 2.07
+Maximum FRP         : 2.07
+Event type          : single_detection
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : error
+Search radius (m)   : 2000
+OSM elements        : N/A
+Industrial objects  : N/A
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : N/A
+Building types      : N/A
+Highway types       : N/A
+Place types         : N/A
+Natural features    : N/A
+Waterways           : N/A
+Amenities           : N/A
+Context             : N/A
+
+NOTE: OSM query failed. Absence of features cannot be inferred.
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+
+
+################################################################################
+EVENT: WB2024_EVT_004603
+################################################################################
+
+EVENT INFORMATION
+--------------------------------------------------------------------------------
+Start time          : 2024-12-08 07:14:00
+End time            : 2024-12-08 07:14:00
+Duration (hours)    : 0.0
+Detection count     : 1
+Centroid latitude   : 24.32033
+Centroid longitude  : 87.83096
+Displacement (km)   : 0.0
+Mean FRP            : 1.92
+Maximum FRP         : 1.92
+Event type          : single_detection
+
+OSM CONTEXT
+--------------------------------------------------------------------------------
+Query status        : success
+Search radius (m)   : 2000
+OSM elements        : 148.0
+Industrial objects  : 0.0
+Nearest industrial  : N/A km
+Industrial type     : N/A
+Land use            : N/A
+Building types      : roof|yes
+Highway types       : primary|residential|service|track|unclassified
+Place types         : N/A
+Natural features    : water
+Waterways           : canal
+Amenities           : fuel
+Context             : amenity:fuel|building:roof|building:yes|highway:primary|highway:residential|highway:service|highway:track|highway:unclassified|natural:water|waterway:canal
+
+VERIFICATION
+--------------------------------------------------------------------------------
+Verification status : not_reviewed
+Verified label      : not assigned
+Satellite checked   : no
+Weather checked     : no
+Human conclusion    : pending
+

@@ -90,79 +90,99 @@ data/processed-backup/
 # ============================================================
 # VERIFICATION DATA
 # ============================================================
+#
+# IMPORTANT — how this section actually works:
+#
+# There is deliberately NO blanket "data/verification/" ignore
+# anywhere in this file. Git cannot un-ignore files inside a
+# directory that is itself ignored (the earlier version of this
+# file had exactly that bug on the old "data/verification/" line,
+# which silently swallowed every exception below it — including
+# ones meant to share chip images and reports). Instead, this
+# section ignores only the specific heavy/raw file types, by
+# pattern, wherever they appear under data/verification/. Small,
+# reviewable outputs (CSVs, rendered PNG/JPG previews, HTML
+# reports) are never matched by an ignore rule in the first place,
+# so there is nothing to "un-ignore" for them.
 
-# Satellite imagery / TIFF files
+# Raw multi-band satellite rasters — large, binary, regenerable
+# from the CDSE API. Not needed for review; NDVI/NBR/NDBI are
+# already extracted into satellite_indices_v*.csv.
 data/verification/**/*.tif
 data/verification/**/*.tiff
 data/verification/**/*.TIF
 data/verification/**/*.TIFF
+data/verification/**/*.jp2
+data/verification/**/*.img
+data/verification/**/*.vrt
+data/verification/**/*.aux.xml
 
-# Satellite images / rendered chips
-data/verification/**/*.png
-data/verification/**/*.jpg
-data/verification/**/*.jpeg
-data/verification/**/*.webp
+# Each reviewer's personal working copy of the review UI's local
+# output — not the shared candidate/label files, and not meant to
+# be merged between collaborators automatically.
+data/verification/verification_review_v2*.csv
 
-# Satellite evidence directories
-data/verification/satellite/
-
-# Generated verification outputs
-data/verification/verification_candidates_v*.csv
-
-# OSM enrichment outputs
-data/verification/*osm*.csv
-
-data/verification/
-
-
-
+# Same rules for a local backup copy of the verification tree,
+# if one exists.
 data/verification-backup/**/*.tif
 data/verification-backup/**/*.tiff
 data/verification-backup/**/*.TIF
 data/verification-backup/**/*.TIFF
+data/verification-backup/**/*.jp2
+data/verification-backup/**/*.img
+data/verification-backup/**/*.vrt
+data/verification-backup/verification_review_v2*.csv
 
-# Satellite images / rendered chips
-data/verification-backup/**/*.png
-data/verification-backup/**/*.jpg
-data/verification-backup/**/*.jpeg
-data/verification-backup/**/*.webp
+# All CSVs under data/verification/ are tracked automatically
+# (nothing above matches *.csv), in particular:
+#   - verification_candidates_v*.csv        (candidate selection, OSM-enriched versions)
+#   - satellite/satellite_indices_v*.csv    (NDVI / NBR / dNBR / NDBI stats)
+#   - verification_review_v1.csv            (the original template, not a personal copy)
+#   - any *_report*.csv                     (OSM / verification review reports)
 
-# Satellite evidence directories
-data/verification-backup/satellite/
-
-# Generated verification outputs
-data/verification-backup/verification_candidates_v*.csv
-data/verification-backup/verification_review_v*.csv
-
-# OSM enrichment outputs
-data/verification-backup/*osm*.csv
-
-data/verification-backup/
 
 # ============================================================
 # GENERATED IMAGERY — ANYWHERE IN PROJECT
 # ============================================================
+#
+# Rendered RGB preview chips (PNG/JPG) are the one exception: they
+# are the visual evidence reviewers (and Claude) actually look at,
+# so they are explicitly un-ignored below. Everything else image-
+# shaped stays ignored repo-wide, including raw rasters.
 
-# Raster imagery
 *.tif
 *.tiff
 *.jp2
 *.img
 *.vrt
-
-# Image files
+*.bmp
 *.png
 *.jpg
 *.jpeg
 *.webp
-*.bmp
+
+# Un-ignore just the rendered preview chips. This works because no
+# parent directory above is ignored as a whole — only specific file
+# types are — so git can actually see these paths to re-include them.
+!data/verification/**/*.png
+!data/verification/**/*.jpg
+!data/verification/**/*.jpeg
+!data/verification/**/*.webp
+!data/verification-backup/**/*.png
+!data/verification-backup/**/*.jpg
+!data/verification-backup/**/*.jpeg
+!data/verification-backup/**/*.webp
+
+# But raw rasters under data/verification/ should stay ignored even
+# though the broader PNG/JPG negation above sits nearby — these
+# patterns were already excluded earlier by extension, so no
+# further action is needed for .tif/.tiff/.jp2/.img/.vrt.
 
 
 # ============================================================
 # GIS / SATELLITE AUXILIARY FILES
 # ============================================================
 
-*.aux.xml
 *.ovr
 *.tfw
 *.jgw
@@ -215,23 +235,3 @@ plots/
 
 *.local
 config.local.*
-
-
-# ============================================================
-# SHARE WITH COLLABORATORS — exceptions to rules above
-# (order matters: these must stay at the bottom of the file)
-# ============================================================
-
-# Original candidate dataset needed to run manual_verify_events.py.
-# NOTE: verification_review_v2*.csv (the generated review output)
-# stays ignored on purpose — each reviewer keeps their own local copy.
-!data/verification/verification_review_v1.csv
-
-# Satellite evidence chips needed by the review app.
-# Directory itself must be un-ignored first, then the file types.
-!data/verification/satellite/
-!data/verification/satellite/**/
-!data/verification/satellite/chips/**/*.png
-!data/verification/satellite/chips/**/*.jpg
-!data/verification/satellite/chips/**/*.jpeg
-!data/verification/satellite/chips/**/*.webp

@@ -1,0 +1,53 @@
+{
+  "event_id": "WB2024_EVT_002151",
+  "latitude": 23.330965,
+  "longitude": 87.090245,
+  "before": {
+    "item_id": "S2B_MSIL2A_20240406T044659_N0510_R076_T45QVF_20240406T071221.SAFE",
+    "datetime": "2024-04-06T05:02:15.040000+00:00",
+    "cloud_cover": 19.88
+  },
+  "after": {
+    "item_id": "S2B_MSIL2A_20240413T043659_N0510_R033_T45QWF_20240413T065832.SAFE",
+    "datetime": "2024-04-13T04:52:18.644000+00:00",
+    "cloud_cover": 4.67
+  },
+  "processing": {
+    "bbox_size_degrees": 0.005,
+    "request_crs": "EPSG:32645",
+    "projected_bbox": [
+      508714.26984838664,
+      2579607.307002834,
+      509737.2609931396,
+      2580714.9892704184
+    ],
+    "target_resolution_m": 10.0,
+    "image_width": 102,
+    "image_height": 111,
+    "grid_note": "Output grid is approximately 10 m in a local UTM metric CRS. B11/B12 are native 20 m bands resampled to the 10 m output grid.",
+    "bands": [
+      "B02",
+      "B03",
+      "B04",
+      "B08",
+      "B11",
+      "B12",
+      "SCL"
+    ],
+    "native_band_resolution_m": {
+      "B02": 10,
+      "B03": 10,
+      "B04": 10,
+      "B08": 10,
+      "B11": 20,
+      "B12": 20,
+      "SCL": 20
+    },
+    "scl_note": "Band 7 (SCL) is a per-pixel classification code, not reflectance. It is used by downstream scripts to mask cloud / cloud-shadow / cirrus / no-data pixels. See https://sentiwiki.copernicus.eu (Scene Classification) for the full class list.",
+    "max_cloud_cover": 50.0,
+    "resampling": {
+      "continuous_reflectance": "BILINEAR",
+      "note": "Sentinel Hub resamples the requested bands onto the approximately 10 m UTM output grid; B11/B12 remain 20 m native information even when represented on the 10 m grid."
+    }
+  }
+}
