@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 import time
 import math
 import requests
@@ -13,10 +14,21 @@ OUTPUT_PATH = INPUT_PATH
 
 RADIUS_METERS = 2000
 
-# Alternative public Overpass endpoint
-OVERPASS_URL = "https://overpass.kumi.systems/api/interpreter"
+# Rotating pool of public Overpass mirrors. If one is overloaded
+# (429/504), the next request tries the next mirror in the list.
+OVERPASS_URLS = [
+    "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.openstreetmap.ru/api/interpreter",
+]
 
 WAIT_SECONDS = 8
+
+# Per-event retry settings. Each attempt uses the next mirror in
+# OVERPASS_URLS (wrapping around), so MAX_ATTEMPTS can exceed the
+# number of mirrors to give a mirror a second chance.
+MAX_ATTEMPTS = 4
+BACKOFF_BASE_SECONDS = 6
 
 USER_AGENT = (
     "FireDistinguish/1.0 "
@@ -90,6 +102,12 @@ def classify(element):
 
 
 def query_osm(lat, lon):
+    """
+    Query OSM/Overpass around an event, retrying across a rotating
+    pool of public mirrors with exponential backoff on 429/504.
+
+    Raises the last error encountered if every attempt fails.
+    """
 
     query = f"""
     [out:json][timeout:90];
@@ -108,16 +126,57 @@ def query_osm(lat, lon):
     out center tags;
     """
 
-    response = requests.post(
-        OVERPASS_URL,
-        data=query,
-        headers={"User-Agent": USER_AGENT},
-        timeout=120
-    )
+    last_error = None
 
-    response.raise_for_status()
+    for attempt in range(MAX_ATTEMPTS):
 
-    return response.json()["elements"]
+        url = OVERPASS_URLS[attempt % len(OVERPASS_URLS)]
+
+        try:
+
+            response = requests.post(
+                url,
+                data=query,
+                headers={"User-Agent": USER_AGENT},
+                timeout=120
+            )
+
+            if response.status_code == 200:
+                return response.json()["elements"]
+
+            if response.status_code in (429, 504):
+
+                last_error = requests.HTTPError(
+                    f"{response.status_code} from {url}"
+                )
+
+                print(
+                    f"  [{response.status_code}] {url} "
+                    f"-> retrying with next mirror"
+                )
+
+            else:
+
+                response.raise_for_status()
+
+        except requests.RequestException as e:
+
+            last_error = e
+
+            print(
+                f"  [{type(e).__name__}] {url} "
+                f"-> retrying with next mirror"
+            )
+
+        if attempt < MAX_ATTEMPTS - 1:
+
+            backoff = BACKOFF_BASE_SECONDS * (attempt + 1)
+
+            print(f"  Backing off {backoff}s...")
+
+            time.sleep(backoff)
+
+    raise last_error
 
 
 print("=" * 75)
@@ -346,9 +405,25 @@ for counter, idx in enumerate(failed_indices, start=1):
         time.sleep(WAIT_SECONDS)
 
 
+
+# ------------------------------------------------------------------
+# Atomic write: save to a temp file first, then replace the target.
+# Protects the already-recovered rows if the process is interrupted
+# mid-write (e.g. killed, disk full) partway through to_csv().
+# ------------------------------------------------------------------
+
+tmp_path = OUTPUT_PATH.with_suffix(
+    OUTPUT_PATH.suffix + ".tmp"
+)
+
 df.to_csv(
-    OUTPUT_PATH,
+    tmp_path,
     index=False
+)
+
+os.replace(
+    tmp_path,
+    OUTPUT_PATH
 )
 
 

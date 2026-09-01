@@ -112,6 +112,8 @@ data/verification/verification_candidates_v*.csv
 # OSM enrichment outputs
 data/verification/*osm*.csv
 
+data/verification/
+
 
 
 data/verification-backup/**/*.tif

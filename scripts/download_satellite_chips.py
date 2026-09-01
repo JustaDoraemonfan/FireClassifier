@@ -340,13 +340,18 @@ function setup() {
                     "B04",
                     "B08",
                     "B11",
-                    "B12"
+                    "B12",
+                    "SCL"
                 ],
-                units: "REFLECTANCE"
-            },
-            {
-                bands: ["SCL"],
-                units: "DN"
+                units: [
+                    "REFLECTANCE",
+                    "REFLECTANCE",
+                    "REFLECTANCE",
+                    "REFLECTANCE",
+                    "REFLECTANCE",
+                    "REFLECTANCE",
+                    "DN"
+                ]
             }
         ],
 
