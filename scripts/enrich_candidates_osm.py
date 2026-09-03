@@ -64,14 +64,37 @@ OVERPASS_URLS = [
 MAX_ATTEMPTS = 4
 BACKOFF_BASE_SECONDS = 6
 
+# Per-event connect/read timeout, kept separate on purpose: if a
+# host is unreachable, there's no reason to wait as long as we'd
+# wait for a slow-but-working server to actually respond. A short
+# connect timeout fails fast on a dead host; a longer read timeout
+# stays patient with a real (if busy) Overpass instance actually
+# processing the query.
+CONNECT_TIMEOUT_SECONDS = 10
+READ_TIMEOUT_SECONDS = 75
+
+# Hosts that fail with a genuine connection-level timeout (as
+# opposed to a 429/504/ReadTimeout, which mean the host IS
+# reachable and just busy or rejecting) are almost never a
+# transient blip — they're typically blocked/unreachable from this
+# specific network for the rest of the run. Once a host proves
+# unreachable this way, stop wasting a slot on it for the remainder
+# of this process; a fresh run will re-test all mirrors from
+# scratch in case the network situation has changed.
+UNREACHABLE_HOSTS = set()
+
 # Be polite to the public OSM service between *events* (separate
 # from the backoff-on-failure above, which only applies within a
-# single event's retries).
-REQUEST_DELAY_SECONDS = 2.0
+# single event's retries). Bumped up slightly from the original —
+# once other mirrors prove unreachable, whichever one remains ends
+# up carrying effectively all requests for this run.
+REQUEST_DELAY_SECONDS = 3.0
 
 # Save partial progress this often, and skip already-completed
-# event_ids on rerun instead of starting over.
-CHECKPOINT_EVERY = 20
+# event_ids on rerun instead of starting over. Kept small (not 20+)
+# so a mid-run network drop — as opposed to a single event's own
+# retries failing — never costs more than a handful of events.
+CHECKPOINT_EVERY = 5
 
 USER_AGENT = (
     "FireDistinguish/1.0 "
@@ -124,23 +147,17 @@ def run_overpass(lat, lon, radius):
     here, and neither tag actually helps tell a wildfire apart from
     an industrial or agricultural source.
 
+    A 429/504/ReadTimeout means the host IS reachable but the query
+    itself is too expensive to finish in time — typically in dense
+    industrial belts (Kharagpur/Midnapore) where even the trimmed
+    tag set returns a lot of elements within 2km. Retrying the
+    identical query on the same or another mirror rarely helps
+    there, so each such failure shrinks the search radius for the
+    next attempt instead, trading some spatial coverage for an
+    actual answer.
+
+    Returns (elements, radius_actually_used).
     Raises the last error encountered if every attempt fails.
-    """
-
-    query = f"""
-    [out:json][timeout:60];
-
-    (
-      nwr["industrial"](around:{radius},{lat},{lon});
-      nwr["man_made"](around:{radius},{lat},{lon});
-      nwr["power"](around:{radius},{lat},{lon});
-      nwr["landuse"](around:{radius},{lat},{lon});
-      nwr["natural"](around:{radius},{lat},{lon});
-      nwr["waterway"](around:{radius},{lat},{lon});
-      nwr["place"](around:{radius},{lat},{lon});
-    );
-
-    out center tags;
     """
 
     headers = {
@@ -149,9 +166,39 @@ def run_overpass(lat, lon, radius):
 
     last_error = None
 
+    current_radius = radius
+
     for attempt in range(MAX_ATTEMPTS):
 
-        url = OVERPASS_URLS[attempt % len(OVERPASS_URLS)]
+        query = f"""
+        [out:json][timeout:60];
+
+        (
+          nwr["industrial"](around:{current_radius},{lat},{lon});
+          nwr["man_made"](around:{current_radius},{lat},{lon});
+          nwr["power"](around:{current_radius},{lat},{lon});
+          nwr["landuse"](around:{current_radius},{lat},{lon});
+          nwr["natural"](around:{current_radius},{lat},{lon});
+          nwr["waterway"](around:{current_radius},{lat},{lon});
+          nwr["place"](around:{current_radius},{lat},{lon});
+        );
+
+        out center tags;
+        """
+
+        # Build the candidate list fresh each attempt, skipping any
+        # host already proven unreachable this run. If every host
+        # has been marked unreachable (network situation changed
+        # mid-run, or all 3 really are down), fall back to trying
+        # the full list again rather than giving up outright.
+        candidates = [
+            u for u in OVERPASS_URLS
+            if u not in UNREACHABLE_HOSTS
+        ] or OVERPASS_URLS
+
+        url = candidates[attempt % len(candidates)]
+
+        was_timeout_style_failure = False
 
         try:
 
@@ -159,17 +206,25 @@ def run_overpass(lat, lon, radius):
                 url,
                 data=query,
                 headers=headers,
-                timeout=90
+                timeout=(
+                    CONNECT_TIMEOUT_SECONDS,
+                    READ_TIMEOUT_SECONDS
+                )
             )
 
             if response.status_code == 200:
-                return response.json().get("elements", [])
+                return (
+                    response.json().get("elements", []),
+                    current_radius
+                )
 
             if response.status_code in (429, 504):
 
                 last_error = requests.HTTPError(
                     f"{response.status_code} from {url}"
                 )
+
+                was_timeout_style_failure = True
 
                 print(
                     f"    [{response.status_code}] {url} "
@@ -180,6 +235,35 @@ def run_overpass(lat, lon, radius):
 
                 response.raise_for_status()
 
+        except requests.ConnectTimeout as e:
+
+            # A true connection-level timeout, as opposed to a slow
+            # response, means this host isn't reachable from this
+            # network right now — not a "try again in a moment"
+            # situation. Stop spending attempts on it for the rest
+            # of this run.
+
+            last_error = e
+
+            UNREACHABLE_HOSTS.add(url)
+
+            print(
+                f"    [ConnectTimeout] {url} "
+                f"-> marking unreachable for this run, "
+                f"retrying with next mirror"
+            )
+
+        except requests.ReadTimeout as e:
+
+            last_error = e
+
+            was_timeout_style_failure = True
+
+            print(
+                f"    [ReadTimeout] {url} "
+                f"-> retrying with next mirror"
+            )
+
         except requests.RequestException as e:
 
             last_error = e
@@ -188,6 +272,20 @@ def run_overpass(lat, lon, radius):
                 f"    [{type(e).__name__}] {url} "
                 f"-> retrying with next mirror"
             )
+
+        if was_timeout_style_failure and current_radius > 500:
+
+            shrunk_radius = max(
+                500,
+                int(current_radius * 0.6)
+            )
+
+            print(
+                f"    Query too slow at {current_radius}m — "
+                f"shrinking to {shrunk_radius}m for next attempt"
+            )
+
+            current_radius = shrunk_radius
 
         if attempt < MAX_ATTEMPTS - 1:
 
@@ -276,9 +374,16 @@ def process_event(event_id, lat, lon):
     are merged in by the caller).
     """
 
-    elements = run_overpass(lat, lon, RADIUS_METERS)
+    elements, radius_used = run_overpass(lat, lon, RADIUS_METERS)
 
     print(f"OSM elements found: {len(elements)}")
+
+    if radius_used < RADIUS_METERS:
+        print(
+            f"    Note: query completed at {radius_used}m, "
+            f"below the nominal {RADIUS_METERS}m radius, after "
+            f"earlier attempts at the full radius timed out."
+        )
 
     industrial_distances = []
     industrial_types = []
@@ -345,7 +450,7 @@ def process_event(event_id, lat, lon):
 
     return {
 
-        "osm_radius_m": RADIUS_METERS,
+        "osm_radius_m": radius_used,
 
         "osm_element_count": len(elements),
 
