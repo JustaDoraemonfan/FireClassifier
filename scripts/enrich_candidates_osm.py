@@ -8,6 +8,7 @@ INPUT:
 
 OUTPUT:
     data/verification/verification_candidates_v2_osm.csv
+    (or whatever --output points at, see below)
 
 IMPORTANT:
 - Does NOT modify the original event dataset.
@@ -26,14 +27,58 @@ ROBUSTNESS NOTES (why this looks different from a minimal version):
   waterway, place) instead of also pulling every building and every
   road within the radius, which is both slow/timeout-prone in dense
   areas and adds no distinguishing signal for this task.
+
+SPLITTING THE WORK ACROSS TWO PEOPLE:
+- Use --start / --end to give each person a distinct, non-
+  overlapping row slice of the SAME input file.
+- Use --output so each person writes to their OWN file — never
+  point two simultaneously-running copies at the same output path,
+  since checkpointing there would race.
+- Once both slices are done, combine the two output files with
+  scripts/merge_osm_parts.py.
+
+  Example (159 total rows, teammate owns 0-99, you own 100-158):
+    python3 scripts/enrich_candidates_osm.py \\
+        --start 100 --end 159 \\
+        --output data/verification/verification_candidates_v2_osm.csv
 """
 
 from pathlib import Path
+import argparse
 import os
 import time
 import math
 import requests
 import pandas as pd
+
+
+# ============================================================
+# CLI ARGS
+# ============================================================
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument(
+    "--start", type=int, default=0,
+    help="First row index (inclusive) of the slice to process. "
+         "Default 0 (start of file)."
+)
+
+parser.add_argument(
+    "--end", type=int, default=None,
+    help="Last row index (exclusive) of the slice to process. "
+         "Default: end of file."
+)
+
+parser.add_argument(
+    "--output", type=str, default=None,
+    help="Output CSV path for this run. Defaults to "
+         "verification_candidates_v2_osm.csv — only safe to omit "
+         "if you are the only one running the script, or if you "
+         "are intentionally resuming/continuing that exact file."
+)
+
+args = parser.parse_args()
 
 
 # ============================================================
@@ -45,7 +90,8 @@ INPUT_PATH = Path(
 )
 
 OUTPUT_PATH = Path(
-    "data/verification/verification_candidates_v2_osm.csv"
+    args.output
+    or "data/verification/verification_candidates_v2_osm.csv"
 )
 
 # Search radius around each FIRMS event
@@ -534,13 +580,36 @@ if not INPUT_PATH.exists():
     print(INPUT_PATH)
     raise SystemExit(1)
 
-df = pd.read_csv(INPUT_PATH)
+full_df = pd.read_csv(INPUT_PATH)
 
-print(f"\nCandidates loaded: {len(df)}")
+full_length = len(full_df)
 
-# Resume support: if a partial output already exists, keep whatever
-# succeeded last time and only (re)process the rest.
-already_done = {}
+slice_start = args.start
+slice_end = args.end if args.end is not None else full_length
+
+df = full_df.iloc[slice_start:slice_end].reset_index(drop=True)
+
+print(f"\nCandidates in full file : {full_length}")
+print(
+    f"This run's slice        : rows {slice_start}-{slice_end - 1} "
+    f"({len(df)} events)"
+)
+print(f"Writing to              : {OUTPUT_PATH}")
+
+# Resume support, keyed by event_id rather than by row position.
+#
+# results_by_id starts as a COMPLETE copy of whatever is already on
+# disk (both successes AND prior errors) — not just the successes,
+# and not rebuilt from position 0 each run. Every checkpoint write
+# below writes out results_by_id as it stands, so a checkpoint can
+# only ever add/update entries, never drop ones that were already
+# saved by an earlier, further-progressed run. This is the fix for
+# the earlier bug where interrupting a fresh run before it reached
+# as far as a previous run did would overwrite the longer file with
+# a shorter one.
+results_by_id = {}
+
+already_done = set()
 
 if OUTPUT_PATH.exists():
 
@@ -548,29 +617,44 @@ if OUTPUT_PATH.exists():
 
     for _, prior_row in prior.iterrows():
 
+        results_by_id[prior_row["event_id"]] = prior_row.to_dict()
+
         if prior_row.get("osm_status") == "success":
-            already_done[prior_row["event_id"]] = prior_row.to_dict()
+            already_done.add(prior_row["event_id"])
 
     print(
-        f"Resuming: {len(already_done)} events already "
-        f"enriched successfully in a previous run."
+        f"Resuming: {len(results_by_id)} events already in "
+        f"the output file ({len(already_done)} successful, "
+        f"{len(results_by_id) - len(already_done)} to retry), "
+        f"from a previous run."
     )
+
+
+def ordered_rows():
+    """
+    Return whatever we currently have in results_by_id, in the
+    same order as this run's candidate slice, for the rows we
+    actually have data for.
+    """
+
+    return [
+        results_by_id[eid]
+        for eid in df["event_id"]
+        if eid in results_by_id
+    ]
 
 
 # ============================================================
 # PROCESS
 # ============================================================
 
-results = []
+processed_this_run = 0
 
 for index, row in df.iterrows():
 
     event_id = row["event_id"]
 
     if event_id in already_done:
-
-        results.append(already_done[event_id])
-
         continue
 
     lat = float(row["centroid_lat"])
@@ -594,7 +678,7 @@ for index, row in df.iterrows():
 
         result.update(enrichment)
 
-        results.append(result)
+        results_by_id[event_id] = result
 
     except Exception as e:
 
@@ -608,20 +692,27 @@ for index, row in df.iterrows():
 
         result["osm_error"] = str(e)
 
-        results.append(result)
+        results_by_id[event_id] = result
+
+    processed_this_run += 1
 
     # ----------------------------------------------------------
     # Checkpoint
     # ----------------------------------------------------------
 
     if (
-        len(results) % CHECKPOINT_EVERY == 0
+        processed_this_run % CHECKPOINT_EVERY == 0
         or index == len(df) - 1
     ):
 
-        save_checkpoint(results, OUTPUT_PATH)
+        rows = ordered_rows()
 
-        print(f"[CHECKPOINT] Saved {len(results)}/{len(df)}")
+        save_checkpoint(rows, OUTPUT_PATH)
+
+        print(
+            f"[CHECKPOINT] Saved {len(rows)}/{len(df)} total "
+            f"({processed_this_run} processed this run)"
+        )
 
     # ----------------------------------------------------------
     # Delay between events (politeness, not backoff-on-failure)
@@ -636,6 +727,8 @@ for index, row in df.iterrows():
 # FINAL SAVE + SUMMARY
 # ============================================================
 
+results = ordered_rows()
+
 save_checkpoint(results, OUTPUT_PATH)
 
 output_df = pd.DataFrame(results)
@@ -646,8 +739,8 @@ print("=" * 75)
 
 print(
     f"""
-Input candidates : {len(df)}
-Output candidates: {len(output_df)}
+Input candidates (this slice): {len(df)}
+Output candidates            : {len(output_df)}
 
 Successful OSM queries:
 {(output_df["osm_status"] == "success").sum()}
@@ -669,7 +762,7 @@ if (output_df["osm_status"] == "error").any():
 
     print(
         "\nSome events still failed after mirror rotation + "
-        "backoff. Just rerun this same script — it will skip "
+        "backoff. Just rerun this same command — it will skip "
         "everything that already succeeded and only retry the "
         "failures."
     )
