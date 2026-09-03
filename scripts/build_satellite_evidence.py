@@ -6,7 +6,7 @@ Build Sentinel-2 satellite evidence metadata for verification candidates.
 This stage DOES NOT download imagery.
 
 It:
-1. Loads the 30 verification candidates.
+1. Loads the verification candidates (currently 159; not hardcoded).
 2. Authenticates against Copernicus Data Space.
 3. Searches Sentinel-2 L2A observations around each event.
 4. Separates observations into BEFORE and AFTER.
@@ -113,7 +113,7 @@ def fail(message: str) -> None:
     sys.exit(1)
 
 
-def authenticate() -> str:
+def authenticate() -> tuple[str, int]:
 
     print("\n" + "-" * 75)
     print("1. COPERNICUS AUTHENTICATION")
@@ -148,9 +148,11 @@ def authenticate() -> str:
         if not token:
             fail("Copernicus returned no access token.")
 
+        expires_in = token_json.get("expires_in", 600)
+
         print("[PASS] Authentication successful")
 
-        return token
+        return token, expires_in
 
     except requests.HTTPError:
 
@@ -172,7 +174,6 @@ def authenticate() -> str:
 
 
 def search_sentinel2(
-    token: str,
     latitude: float,
     longitude: float,
     start_time: pd.Timestamp,
@@ -203,7 +204,7 @@ def search_sentinel2(
     }
 
     headers = {
-        "Authorization": f"Bearer {token}",
+        "Authorization": f"Bearer {get_token()}",
         "Content-Type": "application/json",
     }
 
@@ -213,6 +214,27 @@ def search_sentinel2(
         json=payload,
         timeout=60,
     )
+
+    if response.status_code == 401:
+
+        # Token expired mid-run — refresh once and retry this
+        # same search before giving up on it.
+
+        print(
+            "    [AUTH] 401 received — token expired, "
+            "refreshing and retrying..."
+        )
+
+        headers["Authorization"] = (
+            f"Bearer {get_token(force_refresh=True)}"
+        )
+
+        response = requests.post(
+            CATALOG_URL,
+            headers=headers,
+            json=payload,
+            timeout=60,
+        )
 
     response.raise_for_status()
 
@@ -506,7 +528,33 @@ if len(bad_times) > 0:
 # AUTHENTICATE
 # ============================================================
 
-token = authenticate()
+# CDSE/Keycloak access tokens are short-lived (typically ~600s).
+# A catalog search over ~159 events can run long enough to cross
+# that boundary, so get_token() refreshes proactively before expiry
+# and search_sentinel2() also force-refreshes on an explicit 401.
+
+TOKEN_ISSUED_AT = 0.0
+TOKEN_TTL = 600
+CURRENT_TOKEN = None
+
+
+def get_token(force_refresh: bool = False) -> str:
+
+    global CURRENT_TOKEN, TOKEN_ISSUED_AT, TOKEN_TTL
+
+    expired_soon = (
+        time.time() - TOKEN_ISSUED_AT
+    ) > (TOKEN_TTL - 60)
+
+    if force_refresh or CURRENT_TOKEN is None or expired_soon:
+
+        CURRENT_TOKEN, TOKEN_TTL = authenticate()
+        TOKEN_ISSUED_AT = time.time()
+
+    return CURRENT_TOKEN
+
+
+get_token()
 
 
 # ============================================================
@@ -633,7 +681,6 @@ for index, row in df.iterrows():
     try:
 
         features = search_sentinel2(
-            token=token,
             latitude=latitude,
             longitude=longitude,
             start_time=search_start,

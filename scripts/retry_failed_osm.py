@@ -1,3 +1,23 @@
+"""
+SUPERSEDED — do not run this script.
+
+enrich_candidates_osm.py now has its own mirror rotation, backoff,
+and resume logic built in: rerunning it will automatically skip
+every event that already succeeded and only retry the ones that
+previously failed. That makes this separate retry pass redundant.
+
+This file is also now out of sync with the current OSM schema (it
+still queries/writes osm_building_types / osm_highway_types /
+osm_amenities, which enrich_candidates_osm.py no longer produces —
+running this against a current verification_candidates_v2_osm.csv
+would reintroduce those stale columns instead of the current
+osm_manmade_types / osm_power_types). Left in place for reference
+only; kept out of the pipeline run order.
+
+To retry failed OSM lookups, just rerun:
+    python scripts/enrich_candidates_osm.py
+"""
+
 from pathlib import Path
 import os
 import time

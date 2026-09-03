@@ -296,6 +296,8 @@ if satellite_indices_df is not None and "event_id" in satellite_indices_df.colum
         "dnbr_mean",
         "dnbr_median",
         "dnbr_p90",
+        "before_ndbi_mean",
+        "before_ndbi_median",
     ]
     available_index_columns = [
         c for c in index_columns if c in satellite_indices_df.columns
@@ -472,12 +474,11 @@ preferred_order = [
     "osm_nearest_industrial_km",
     "osm_nearest_industrial_type",
     "osm_landuse",
-    "osm_building_types",
-    "osm_highway_types",
+    "osm_manmade_types",
+    "osm_power_types",
     "osm_place_types",
     "osm_natural_features",
     "osm_waterways",
-    "osm_amenities",
     "osm_context",
     "osm_error",
 
@@ -514,6 +515,9 @@ preferred_order = [
     "dnbr_mean",
     "dnbr_median",
     "dnbr_p90",
+
+    "before_ndbi_mean",
+    "before_ndbi_median",
 
     # Human verification
     "verification_label",

@@ -231,60 +231,104 @@ print("\n" + "-" * 75)
 print("2. COPERNICUS AUTHENTICATION")
 print("-" * 75)
 
-token_payload = {
-    "grant_type": "client_credentials",
-    "client_id": CLIENT_ID,
-    "client_secret": CLIENT_SECRET,
-}
+# CDSE/Keycloak access tokens are short-lived (typically ~600s).
+# A run over ~159 events x 2 chips each, with real image downloads
+# and retries, can easily exceed that. TOKEN_ISSUED_AT / TOKEN_TTL
+# let get_headers() refresh proactively before it expires, and the
+# download loop also force-refreshes on an explicit 401 as a backstop.
+
+TOKEN_ISSUED_AT = 0.0
+TOKEN_TTL = 600
+ACCESS_TOKEN = None
 
 
-try:
+def authenticate():
+    """
+    Fetch a fresh Copernicus access token.
 
-    response = requests.post(
-        TOKEN_URL,
-        data=token_payload,
-        timeout=30,
-    )
+    Returns (access_token, expires_in_seconds).
+    """
 
-    response.raise_for_status()
+    token_payload = {
+        "grant_type": "client_credentials",
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET,
+    }
 
-    token_json = response.json()
+    try:
 
-    ACCESS_TOKEN = token_json.get(
-        "access_token"
-    )
+        response = requests.post(
+            TOKEN_URL,
+            data=token_payload,
+            timeout=30,
+        )
 
-    if not ACCESS_TOKEN:
-        fail("No access token returned.")
+        response.raise_for_status()
 
-    print("[PASS] Authentication successful")
+        token_json = response.json()
 
-except requests.HTTPError:
+        access_token = token_json.get(
+            "access_token"
+        )
 
-    print(
-        f"[ERROR] Authentication failed: "
-        f"HTTP {response.status_code}"
-    )
+        if not access_token:
+            fail("No access token returned.")
 
-    print(response.text[:1000])
+        expires_in = token_json.get(
+            "expires_in",
+            600
+        )
 
-    sys.exit(1)
+        return access_token, expires_in
 
-except Exception as exc:
+    except requests.HTTPError:
 
-    fail(
-        f"{type(exc).__name__}: {exc}"
-    )
+        print(
+            f"[ERROR] Authentication failed: "
+            f"HTTP {response.status_code}"
+        )
+
+        print(response.text[:1000])
+
+        sys.exit(1)
+
+    except Exception as exc:
+
+        fail(
+            f"{type(exc).__name__}: {exc}"
+        )
 
 
-# ============================================================
-# REQUEST HEADERS
-# ============================================================
+def get_headers(force_refresh=False):
+    """
+    Return request headers with a valid, non-expired bearer token,
+    refreshing it first if it's missing, force_refresh is set, or
+    it's within 60s of its known expiry.
+    """
 
-headers = {
-    "Authorization": f"Bearer {ACCESS_TOKEN}",
-    "Content-Type": "application/json",
-}
+    global ACCESS_TOKEN, TOKEN_ISSUED_AT, TOKEN_TTL
+
+    expired_soon = (
+        time.time() - TOKEN_ISSUED_AT
+    ) > (TOKEN_TTL - 60)
+
+    if force_refresh or ACCESS_TOKEN is None or expired_soon:
+
+        print("    [AUTH] Refreshing Copernicus access token...")
+
+        ACCESS_TOKEN, TOKEN_TTL = authenticate()
+        TOKEN_ISSUED_AT = time.time()
+
+    return {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
+
+ACCESS_TOKEN, TOKEN_TTL = authenticate()
+TOKEN_ISSUED_AT = time.time()
+
+print("[PASS] Authentication successful")
 
 
 # ============================================================
@@ -610,12 +654,35 @@ def download_chip(
 
                 PROCESS_URL,
 
-                headers=headers,
+                headers=get_headers(),
 
                 json=payload,
 
                 timeout=180,
             )
+
+            if response.status_code == 401:
+
+                # Token expired mid-run (this is the expected path
+                # for long runs, not an edge case) — force a fresh
+                # token and retry this same attempt immediately
+                # rather than burning a full backoff cycle on it.
+
+                print(
+                    "    [AUTH] 401 received — token expired, "
+                    "refreshing and retrying..."
+                )
+
+                response = requests.post(
+
+                    PROCESS_URL,
+
+                    headers=get_headers(force_refresh=True),
+
+                    json=payload,
+
+                    timeout=180,
+                )
 
             response.raise_for_status()
 

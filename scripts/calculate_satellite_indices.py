@@ -113,6 +113,31 @@ def calculate_nbr(nir, swir2):
     )
 
 
+def calculate_ndbi(swir1, nir):
+    """
+    NDBI = (SWIR1 - NIR) / (SWIR1 + NIR)
+
+    Built-up index. Uses bands already downloaded for NDVI/NBR
+    (B11 SWIR1, B08 NIR) — no extra chip download needed.
+
+    Purpose here: corroborate OSM's industrial-facility tags with
+    an independent, pixel-level signal. A candidate with a nearby
+    OSM industrial tag AND high NDBI at the centroid is much
+    stronger industrial evidence than either alone. Conversely, a
+    wildfire_season_region candidate with low NDBI and a genuine
+    NDVI/NBR drop has no competing built-up explanation nearby.
+
+    Like NDVI/NBR, this is evidence for a human reviewer to weigh
+    alongside OSM context and seasonality — never an automated
+    labeling rule on its own.
+    """
+
+    return safe_divide(
+        swir1 - nir,
+        swir1 + nir
+    )
+
+
 # ============================================================
 # STATISTICS
 # ============================================================
@@ -388,6 +413,24 @@ def process_event(event_dir):
     )
 
     # --------------------------------------------------------
+    # Calculate NDBI (built-up index)
+    # --------------------------------------------------------
+    #
+    # Computed for BEFORE only — NDBI here is used to check whether
+    # there's a built-up structure at this location at all, not to
+    # track change over time the way NDVI/NBR do. Reuses swir1
+    # (B11) already loaded for the chip; no extra download.
+
+    print(
+        "    Calculating BEFORE NDBI..."
+    )
+
+    before_ndbi = calculate_ndbi(
+        before["swir1"],
+        before["nir"]
+    )
+
+    # --------------------------------------------------------
     # Calculate changes
     # --------------------------------------------------------
 
@@ -432,6 +475,12 @@ def process_event(event_dir):
     after_nbr_stats = (
         calculate_statistics(
             after_nbr
+        )
+    )
+
+    before_ndbi_stats = (
+        calculate_statistics(
+            before_ndbi
         )
     )
 
@@ -651,6 +700,25 @@ def process_event(event_dir):
 
         "dnbr_max":
             dnbr_stats["max"],
+
+        # ---------------------------------------------
+        # NDBI (built-up index, BEFORE only)
+        # ---------------------------------------------
+
+        "before_ndbi_mean":
+            before_ndbi_stats["mean"],
+
+        "before_ndbi_median":
+            before_ndbi_stats["median"],
+
+        "before_ndbi_std":
+            before_ndbi_stats["std"],
+
+        "before_ndbi_p90":
+            before_ndbi_stats["p90"],
+
+        "before_ndbi_valid_percent":
+            before_ndbi_stats["valid_percent"],
 
         # ---------------------------------------------
         # Quality

@@ -156,13 +156,13 @@ with open(
         )
 
         f.write(
-            f"Building types      : "
-            f"{clean(row['osm_building_types'])}\n"
+            f"Man-made features   : "
+            f"{clean(row['osm_manmade_types'])}\n"
         )
 
         f.write(
-            f"Highway types       : "
-            f"{clean(row['osm_highway_types'])}\n"
+            f"Power infrastructure: "
+            f"{clean(row['osm_power_types'])}\n"
         )
 
         f.write(
@@ -178,11 +178,6 @@ with open(
         f.write(
             f"Waterways           : "
             f"{clean(row['osm_waterways'])}\n"
-        )
-
-        f.write(
-            f"Amenities           : "
-            f"{clean(row['osm_amenities'])}\n"
         )
 
         f.write(

@@ -874,6 +874,6 @@ POOR:
 
 Next step:
     Use these quality results when manually reviewing
-    the 30 verification candidates.
+    the verification candidates.
 """
 )
